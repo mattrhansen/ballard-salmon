@@ -1,6 +1,5 @@
 import { Scene } from 'phaser';
 
-const TILE = 32;
 const JOYSTICK_RADIUS = 50;
 const THUMB_RADIUS = 24;
 
@@ -30,7 +29,6 @@ export class Game extends Scene
 
     create ()
     {
-        this.buildTilesetTexture();
         this.buildPlayerTexture();
 
         const map = this.buildMap();
@@ -122,35 +120,6 @@ export class Game extends Scene
         });
     }
 
-    private buildTilesetTexture () {
-        const g = this.add.graphics();
-
-        // 0 – grass
-        g.fillStyle(0x4a9e3f); g.fillRect(0, 0, TILE, TILE);
-        g.fillStyle(0x3d8434, 0.4);
-        [4,14,22,10,28].forEach((x, i) => g.fillRect(x, i * 6, 4, 4));
-
-        // 1 – dirt path
-        g.fillStyle(0xc8a458); g.fillRect(TILE, 0, TILE, TILE);
-        g.fillStyle(0xa88040, 0.3);
-        [TILE+4, TILE+18, TILE+8].forEach((x, i) => g.fillRect(x, i * 10 + 4, 5, 3));
-
-        // 2 – water
-        g.fillStyle(0x2979d4); g.fillRect(TILE * 2, 0, TILE, TILE);
-        g.fillStyle(0x5599e8, 0.5);
-        g.fillRect(TILE * 2 + 4, 8, 20, 4);
-        g.fillRect(TILE * 2 + 8, 20, 16, 4);
-
-        // 3 – stone wall
-        g.fillStyle(0x6e7a8a); g.fillRect(TILE * 3, 0, TILE, TILE);
-        g.lineStyle(1, 0x4a5260);
-        g.strokeRect(TILE * 3, 0, TILE, TILE);
-        g.strokeRect(TILE * 3, 0, TILE / 2, TILE / 2);
-        g.strokeRect(TILE * 3 + TILE / 2, TILE / 2, TILE / 2, TILE / 2);
-
-        g.generateTexture('tiles', TILE * 4, TILE);
-        g.destroy();
-    }
 
     private buildPlayerTexture () {
         const g = this.add.graphics();
@@ -164,49 +133,15 @@ export class Game extends Scene
     }
 
     private buildMap (): Phaser.Tilemaps.Tilemap {
-        const COLS = 50, ROWS = 40;
-
-        const data: number[][] = Array.from({ length: ROWS }, () =>
-            Array(COLS).fill(0)
-        );
-
-        for (let r = 4; r < 13; r++) {
-            for (let c = 4; c < 16; c++) {
-                data[r][c] = (r === 4 || r === 12 || c === 4 || c === 15) ? 3 : 1;
-            }
-        }
-        data[8][15] = 1;
-
-        for (let c = 15; c < 28; c++) data[8][c] = 1;
-        for (let r = 8; r < 22; r++)  data[r][27] = 1;
-
-        for (let r = 18; r < 26; r++)
-            for (let c = 20; c < 34; c++)
-                data[r][c] = 2;
-
-        for (let r = 17; r < 27; r++)
-            for (let c = 19; c < 35; c++)
-                if (data[r][c] !== 2) data[r][c] = 1;
-
-        for (let r = 10; r < 20; r++) {
-            for (let c = 36; c < 48; c++) {
-                data[r][c] = (r === 10 || r === 19 || c === 36 || c === 47) ? 3 : 1;
-            }
-        }
-        data[15][36] = 1;
-        for (let c = 34; c < 37; c++) data[15][c] = 1;
-
-        const map = this.make.tilemap({ data, tileWidth: TILE, tileHeight: TILE });
-        const tileset = map.addTilesetImage('tiles', 'tiles', TILE, TILE, 0, 0)!;
-        this.groundLayer = map.createLayer(0, tileset, 0, 0)!;
-        this.groundLayer.setCollision([2, 3]);
+        const map = this.make.tilemap({ key: 'map' });
+        const tileset = map.addTilesetImage('terrain', 'terrain')!;
+        this.groundLayer = map.createLayer('Tile Layer 1', tileset, 0, 0)!;
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
         return map;
     }
 
     private setupPlayer (_map: Phaser.Tilemaps.Tilemap) {
-        this.player = this.physics.add.sprite(8 * TILE, 8 * TILE, 'player');
+        this.player = this.physics.add.sprite(20 * 16, 15 * 16, 'player');
         this.player.setCollideWorldBounds(true);
         this.physics.add.collider(this.player, this.groundLayer);
     }
